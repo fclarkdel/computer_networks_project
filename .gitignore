@@ -1,0 +1,14 @@
+/*
+
+!/data
+!/docs
+!/external
+!/include
+!/source
+!/tests
+!/tools
+!.clang-format
+!.gitignore
+!CMakeLists.txt
+!LICENSE.md
+!README.md
