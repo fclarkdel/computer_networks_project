@@ -8,6 +8,8 @@
 
 namespace computer_networks_project::packet {
 	struct ethernet {
+		static const std::size_t BROADCAST_ID = 99;
+
 		std::size_t destination_id;
 		std::size_t source_id;
 		std::string data;

@@ -8,7 +8,8 @@ namespace computer_networks_project::utils {
 			[](const std::filesystem::directory_entry &entry) {
 				if (entry.is_regular_file() &&
 					entry.path().filename().string().starts_with("toB") ||
-					entry.path().filename().string().starts_with("fromB"))
+					entry.path().filename().string().starts_with("fromB") ||
+					entry.path().filename().string().starts_with("B"))
 					std::filesystem::remove(entry.path());
 			}
 		);
