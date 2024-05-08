@@ -12,47 +12,48 @@ struct bridge_test : public ::testing::Test {
 	}
 };
 
-TEST_F(bridge_test, dev) {
-//	packet::ethernet packet{99, 1, "data"};
-//
-//	link::link link11{1, 1};
-	// Something about reading pushes the stream into an invalid state where it is no longer capable of reading future
-	// writes.
-	//
-	// I think it may have to do with reading the final entry in a file, because checking for EOF does not seem to help.
-//	auto temp0 = link11.bridge_read();
-//	link11.port_write(packet);
-//	auto temp1 = link11.bridge_read();
+TEST_F(bridge_test, should_deliver_packets_to_other_bridges) {
+	packet::ethernet packet{2, 1, "data"};
+	link::link link11{1, 1};
+	link::link link21{2, 1};
+	link::link link31{3, 1};
+	link::bridge_link bridge_link12{1, 2};
+	link::bridge_link bridge_link23{2, 3};
+	bridge::bridge bridge1{1, 1, {2}};
+	bridge::bridge bridge2{2, 1, {1, 3}};
+	bridge::bridge bridge3{3, 1, {2}};
 
-	{
-		std::fstream{"test.txt", std::fstream::app};
-	}
-	std::fstream read_stream{"test.txt", std::fstream::in};
-	std::fstream write_stream{"test.txt", std::fstream::app};
+	link11.write_port(packet);
+	auto temp = link11.read_bridge();
+	ASSERT_TRUE(temp.has_value());
+	ASSERT_EQ(packet, std::get<packet::ethernet>(temp.value()));
 
-//	write_stream << std::endl;
+	bridge1.process_packets();
+	temp = bridge_link12.read_0_to_1();
+	ASSERT_TRUE(temp.has_value());
+	ASSERT_EQ(packet, std::get<packet::ethernet>(temp.value()));
+	temp = link11.read_port();
+	ASSERT_TRUE(temp.has_value());
+	ASSERT_EQ(packet, std::get<packet::ethernet>(temp.value()));
 
-	write_stream << packet::serialize(packet::ethernet{1, 2, "data"}) << std::endl;
+	bridge2.process_packets();
+	temp = bridge_link12.read_1_to_0();
+	ASSERT_TRUE(temp.has_value());
+	ASSERT_EQ(packet, std::get<packet::ethernet>(temp.value()));
+	temp = link21.read_port();
+	ASSERT_TRUE(temp.has_value());
+	ASSERT_EQ(packet, std::get<packet::ethernet>(temp.value()));
+	temp = bridge_link23.read_0_to_1();
+	ASSERT_TRUE(temp.has_value());
+	ASSERT_EQ(packet, std::get<packet::ethernet>(temp.value()));
 
-	std::string line{};
-	std::getline(read_stream, line);
-	std::getline(read_stream, line);
-
-	write_stream << packet::serialize(packet::ethernet{2, 3, "data"}) << std::endl;
-	write_stream << packet::serialize(packet::ethernet{3, 4, "data"}) << std::endl;
-	write_stream << packet::serialize(packet::ethernet{4, 5, "data"}) << std::endl;
-
-	auto is_open = read_stream.is_open();
-	auto eofbit = read_stream.eof();
-	auto badbit = read_stream.bad();
-	auto failbit = read_stream.fail();
-
-	read_stream.clear();
-
-	std::getline(read_stream, line);
-	std::getline(read_stream, line);
-	std::getline(read_stream, line);
-	std::getline(read_stream, line);
+	bridge3.process_packets();
+	temp = link31.read_port();
+	ASSERT_TRUE(temp.has_value());
+	ASSERT_EQ(packet, std::get<packet::ethernet>(temp.value()));
+	temp = bridge_link23.read_1_to_0();
+	ASSERT_TRUE(temp.has_value());
+	ASSERT_EQ(packet, std::get<packet::ethernet>(temp.value()));
 }
 
 TEST_F(bridge_test, should_broadcast_packet_when_it_has_broadcast_id_as_destination_id) {

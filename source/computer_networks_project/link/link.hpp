@@ -8,14 +8,19 @@
 #include <packet/packet.hpp>
 
 namespace computer_networks_project::link {
-	struct link {
-		std::size_t bridge_id;
-		std::size_t port_id;
+	void write_packet_to_stream(std::fstream &stream, auto packet) {
+		stream << packet::serialize(packet) << std::endl;
+	}
 
+	struct link {
 		link(
 			std::size_t bridge_id,
 			std::size_t port_id
 		);
+
+		std::size_t get_port_id() const;
+
+		std::size_t get_bridge_id() const;
 
 		const std::string &get_from_filename() const;
 
@@ -34,6 +39,9 @@ namespace computer_networks_project::link {
 		std::optional<packet::packet_types> read_port();
 
 	private:
+		std::size_t bridge_id;
+		std::size_t port_id;
+
 		std::string from_filename;
 		std::string to_filename;
 
@@ -49,13 +57,14 @@ namespace computer_networks_project::link {
 	};
 
 	struct bridge_link {
-		std::size_t bridge_0_id;
-		std::size_t bridge_1_id;
-
 		bridge_link(
 			std::size_t bridge_0_id,
 			std::size_t bridge_1_id
 		);
+
+		std::size_t get_bridge_id_0() const;
+
+		std::size_t get_bridge_id_1() const;
 
 		const std::string &get_filename_0_to_1() const;
 
@@ -74,25 +83,20 @@ namespace computer_networks_project::link {
 		std::optional<packet::packet_types> read_1_to_0();
 
 	private:
+		std::size_t bridge_0_id;
+		std::size_t bridge_1_id;
+
 		std::string filename_0_to_1;
 		std::string filename_1_to_0;
 
-		// Bridge reads from here
-		// Port writes to here
 		std::fstream read_stream_0_to_1;
 		std::fstream write_stream_0_to_1;
 
-		// Bridge writes to here
-		// Port reads from here
 		std::fstream read_stream_1_to_0;
 		std::fstream write_stream_1_to_0;
 	};
 
 	using link_types = std::variant<link, bridge_link>;
-
-	void write_packet_to_stream(std::fstream &stream, auto packet) {
-		stream << packet::serialize(packet) << std::endl;
-	}
 
 }
 #endif

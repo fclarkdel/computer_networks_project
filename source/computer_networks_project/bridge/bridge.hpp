@@ -15,6 +15,8 @@ namespace computer_networks_project::bridge {
 			std::vector<std::size_t> adjacent_bridge_ids
 		);
 
+		std::size_t get_id() const;
+
 		void process_packets();
 
 	private:

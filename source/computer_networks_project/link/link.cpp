@@ -49,6 +49,14 @@ namespace computer_networks_project::link {
 		return to_filename;
 	}
 
+	std::size_t link::get_port_id() const {
+		return port_id;
+	}
+
+	std::size_t link::get_bridge_id() const {
+		return bridge_id;
+	}
+
 	bridge_link::bridge_link(
 		std::size_t bridge_0_id,
 		std::size_t bridge_1_id) :
@@ -85,5 +93,13 @@ namespace computer_networks_project::link {
 
 	std::optional<packet::packet_types> bridge_link::read_1_to_0() {
 		return read_packet_from_stream(read_stream_1_to_0);
+	}
+
+	std::size_t bridge_link::get_bridge_id_0() const {
+		return bridge_0_id;
+	}
+
+	std::size_t bridge_link::get_bridge_id_1() const {
+		return bridge_1_id;
 	}
 }
