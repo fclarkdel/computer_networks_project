@@ -53,7 +53,17 @@ namespace computer_networks_project::packet {
 		bool operator==(const hl &rhs) const;
 	};
 
-	using packet_types = std::variant<ethernet, ip, arp, hl>;
+	struct bc {
+		std::size_t source_network_id;
+		std::size_t source_host_id;
+		std::size_t sequence_number;
+		std::size_t destination_network_id;
+		std::string data;
+
+		bool operator==(const bc &rhs) const;
+	};
+
+	using packet_types = std::variant<ethernet, ip, arp, hl, bc>;
 
 	std::string serialize(const ethernet &packet);
 
@@ -62,6 +72,8 @@ namespace computer_networks_project::packet {
 	std::string serialize(const arp &packet);
 
 	std::string serialize(const hl &packet);
+
+	std::string serialize(const bc &packet);
 
 	std::optional<packet_types> deserialize(const std::string &serialization);
 }

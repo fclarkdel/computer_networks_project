@@ -9,6 +9,7 @@ TEST(packet_test, should_return_serialization_if_serializing_valid_data) {
 	EXPECT_EQ(packet::serialize(packet::ip{1, 1, 2, 2, "data"}), "ip 1 1 2 2 data");
 	EXPECT_EQ(packet::serialize(packet::arp{packet::arp_types::REQ, 1, 2, 0, 3, 2, 1}), "arp req 1 2 3 2 1");
 	EXPECT_EQ(packet::serialize(packet::hl{1, 1, 2}), "hl 1 1 2");
+	EXPECT_EQ(packet::serialize(packet::bc{1, 1, 1, 2, "data"}), "bc 1 1 1 2 data");
 }
 
 TEST(packet_test, should_return_packet_if_deserializing_valid_data) {
@@ -43,6 +44,11 @@ TEST(packet_test, should_return_packet_if_deserializing_valid_data) {
 	deserialized_packet = packet::deserialize(serialized_packet);
 	ASSERT_TRUE(deserialized_packet.has_value());
 	EXPECT_EQ(get<packet::hl>(deserialized_packet.value()), (packet::hl{1, 1, 2}));
+
+	serialized_packet = "bc 1 1 1 2 data";
+	deserialized_packet = packet::deserialize(serialized_packet);
+	ASSERT_TRUE(deserialized_packet.has_value());
+	EXPECT_EQ(get<packet::bc>(deserialized_packet.value()), (packet::bc{1, 1, 1, 2, "data"}));
 }
 
 TEST(packet_test, should_return_nothing_if_deserializing_invalid_data) {

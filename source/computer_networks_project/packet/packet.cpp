@@ -31,6 +31,14 @@ namespace computer_networks_project::packet {
 			   ethernet_id == rhs.ethernet_id;
 	}
 
+	bool bc::operator==(const bc &rhs) const {
+		return source_network_id == rhs.source_network_id &&
+			   source_host_id == rhs.source_network_id &&
+			   sequence_number == rhs.sequence_number &&
+			   destination_network_id == rhs.destination_network_id &&
+			   data == rhs.data;
+	}
+
 	std::string serialize(const ethernet &packet) {
 		return "ethernet " +
 			   std::to_string(packet.destination_id) + " " +
@@ -75,6 +83,15 @@ namespace computer_networks_project::packet {
 			   std::to_string(packet.network_id) + " " +
 			   std::to_string(packet.host_id) + " " +
 			   std::to_string(packet.ethernet_id);
+	}
+
+	std::string serialize(const bc &packet) {
+		return "bc " +
+			   std::to_string(packet.source_network_id) + " " +
+			   std::to_string(packet.source_host_id) + " " +
+			   std::to_string(packet.sequence_number) + " " +
+			   std::to_string(packet.destination_network_id) + " " +
+			   packet.data;
 	}
 
 	std::optional<packet_types> deserialize(const std::string &serialization) {
@@ -160,7 +177,27 @@ namespace computer_networks_project::packet {
 				std::size_t{std::stoull(host_id)},
 				std::size_t{std::stoull(ethernet_id)}
 			};
-		} else
-			return std::nullopt;
+		} else if (packet_type == "bc") {
+			std::string source_network_id{};
+			std::string source_host_id{};
+			std::string sequence_number{};
+			std::string destination_network_id{};
+			std::string data{};
+
+			std::getline(stream, source_network_id, ' ');
+			std::getline(stream, source_host_id, ' ');
+			std::getline(stream, sequence_number, ' ');
+			std::getline(stream, destination_network_id, ' ');
+			std::getline(stream, data, ' ');
+
+			return bc{
+				std::size_t{std::stoull(source_network_id)},
+				std::size_t{std::stoull(source_host_id)},
+				std::size_t{std::stoull(sequence_number)},
+				std::size_t{std::stoull(destination_network_id)},
+				data
+			};
+		}
+		return std::nullopt;
 	}
 }
