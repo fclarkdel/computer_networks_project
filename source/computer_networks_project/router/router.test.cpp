@@ -212,8 +212,8 @@ TEST_F(router_test, should_broadcast_hl_packets_on_hello_broadcast) {
 		{2},
 		{2}
 	};
-	router1.hello_broadcast();
-	router2.hello_broadcast();
+	router1.hl_broadcast();
+	router2.hl_broadcast();
 	auto packet = packet::deserialize(std::get<packet::ethernet>(link11.read_bridge().value()).data);
 	ASSERT_TRUE(packet.has_value());
 	ASSERT_EQ(
@@ -234,4 +234,106 @@ TEST_F(router_test, should_broadcast_hl_packets_on_hello_broadcast) {
 	);
 	bridge1.process_packets();
 	router1.process_packets();
+}
+
+TEST_F(router_test, should_send_bc_packet_to_adjacent_routers_for_ip_packet_not_destined_for_an_adjacent_network) {
+	packet::ethernet packet{
+		4,
+		5,
+		packet::serialize(
+			packet::ip{
+				4,
+				2,
+				5,
+				1,
+				"data"
+			}
+		)
+	};
+	link::link link11{1, 1};
+	link::link link12{1, 2};
+	link::link link21{2, 1};
+	link::link link22{2, 2};
+	link::link link31{3, 1};
+	link::link link32{3, 2};
+	link::link link41{4, 1};
+	link::link link42{4, 2};
+	bridge::bridge bridge1{1, 2, {}};
+	bridge::bridge bridge2{2, 2, {}};
+	bridge::bridge bridge3{3, 2, {}};
+	bridge::bridge bridge4{4, 2, {}};
+	router::router router1{
+		{1, 2},
+		{1, 1},
+		{1, 2},
+		{2, 1},
+		{1, 1}
+	};
+	router::router router2{
+		{2, 3},
+		{2, 1},
+		{2, 3},
+		{2, 1},
+		{2, 2}
+	};
+	router::router router3{
+		{3, 4},
+		{2, 1},
+		{3, 4},
+		{2, 1},
+		{3, 3}
+	};
+	router::router router4{
+		{4},
+		{2},
+		{4},
+		{2},
+		{4}
+	};
+	router2.hl_broadcast();
+	packet = packet::ethernet{
+		99,
+		2,
+		packet::serialize(
+			packet::hl{
+				2,
+				2,
+				2
+			}
+		)
+	};
+	auto packet_read = link22.read_bridge();
+	ASSERT_TRUE(packet_read.has_value());
+	ASSERT_EQ(packet, std::get<packet::ethernet>(packet_read.value()));
+	router3.hl_broadcast();
+	router4.hl_broadcast();
+	bridge2.process_packets();
+	bridge3.process_packets();
+	bridge4.process_packets();
+	router1.process_packets();
+	router2.process_packets();
+	router3.process_packets();
+	link11.write_port(
+		packet::ethernet{
+			1,
+			5,
+			packet::serialize(
+				packet::ip{
+					4,
+					2,
+					5,
+					1,
+					"data"
+				}
+			)
+		}
+	);
+	bridge1.process_packets();
+	router1.process_packets();
+	bridge2.process_packets();
+	router2.process_packets();
+	bridge3.process_packets();
+	router3.process_packets();
+	bridge4.process_packets();
+	router4.process_packets();
 }

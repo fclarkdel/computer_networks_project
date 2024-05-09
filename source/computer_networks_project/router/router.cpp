@@ -12,13 +12,18 @@ namespace computer_networks_project::router {
 		host_ids{host_ids},
 		bridge_ids{bridge_ids},
 		port_ids{port_ids},
-		ethernet_ids{ethernet_ids} {
+		ethernet_ids{ethernet_ids},
+		bc_sequence_number{0} {
 		for (std::size_t index = 0; index < bridge_ids.size(); ++index) {
 			links.emplace_back(bridge_ids[index], port_ids[index]);
+
+			network_id_to_link_index[network_ids[index]] = index;
+			network_id_to_host_id[network_ids[index]] = host_ids[index];
+			network_id_to_ethernet_id[network_ids[index]] = ethernet_ids[index];
 		}
 	}
 
-	void router::hello_broadcast() {
+	void router::hl_broadcast() {
 		for (std::size_t index = 0; index < links.size(); ++index) {
 			packet::ethernet ethernet_packet{
 				packet::ethernet::BROADCAST_ID,
@@ -36,49 +41,85 @@ namespace computer_networks_project::router {
 	}
 
 	void router::process_packet(const packet::ip &packet, std::size_t link_index) {
-		if (packet.destination_network_id == network_ids[link_index] &&
-			packet.destination_host_id == host_ids[link_index]) {
-			// Do not forward this packet since it is addressed for this router.
+		// In adjacent network?
+		if (network_id_to_host_id.contains(packet.destination_network_id)) {
+			// Mean for this router?
+			if (network_id_to_host_id[packet.destination_network_id] == packet.destination_host_id) {
+				// Do nothing.
+				return;
+			} else {
+				// Know associated ethernet id?
+				if (ip_id_to_ethernet_id.contains(packet.destination_network_id) &&
+					ip_id_to_ethernet_id[packet.destination_network_id].contains(packet.destination_host_id)) {
+					// Grab link associated with packet network id.
+					auto &link = links[network_id_to_link_index[packet.destination_network_id]];
 
-			return;
-		} else if (ip_id_to_ethernet_id.contains(packet.destination_network_id) &&
-				   ip_id_to_ethernet_id[packet.destination_network_id].contains(packet.destination_host_id)) {
-			// Do know ethernet id for this ip id.
+					// Write the packet to that link.
+					link.write_port(
+						packet::ethernet{
+							ip_id_to_ethernet_id[packet.destination_network_id][packet.destination_host_id],
+							ethernet_ids[link_index],
+							packet::serialize(packet)
+						}
+					);
+				} else {
+					// Buffer the packet.
+					if (!arp_buffer.contains(packet.destination_network_id))
+						arp_buffer[packet.destination_network_id] = {};
 
-			links[link_index].write_port(
-				packet::ethernet{
-					ip_id_to_ethernet_id[packet.destination_network_id][packet.destination_host_id],
-					ethernet_ids[link_index],
-					packet::serialize(packet)
+					if (!arp_buffer[packet.destination_network_id].contains(packet.destination_host_id))
+						arp_buffer[packet.destination_network_id][packet.destination_host_id] = {};
+
+					arp_buffer[packet.destination_network_id][packet.destination_host_id].emplace_back(packet);
+
+					// Broadcast ARP REQ over all links.
+					packet::arp arp_packet{
+						packet::arp_types::REQ,
+						packet.destination_network_id,
+						packet.destination_host_id,
+						0,
+						network_ids[link_index],
+						host_ids[link_index],
+						ethernet_ids[link_index]
+					};
+					packet::ethernet ethernet_packet{
+						packet::ethernet::BROADCAST_ID,
+						ethernet_ids[link_index],
+						packet::serialize(arp_packet)
+					};
+					for (auto &link: links) {
+						link.write_port(
+							ethernet_packet
+						);
+					}
 				}
-			);
+			}
 		} else {
-			// Do not know ethernet id for this ip id, broadcast an ARP REQ and buffer IP packet.
-			if (!arp_buffer.contains(packet.destination_network_id))
-				arp_buffer[packet.destination_network_id] = {};
+			// Send bc packet to adjacent routers.
+			for (const auto &network_id: network_ids) {
+				if (network_id_to_adjacent_router_host_ids.contains(network_id)) {
+					for (const auto &router_host_id: network_id_to_adjacent_router_host_ids[network_id]) {
+						// Grab link associated with network id.
+						auto &link = links[network_id_to_link_index[network_id]];
 
-			if (!arp_buffer[packet.destination_network_id].contains(packet.destination_host_id))
-				arp_buffer[packet.destination_network_id][packet.destination_host_id] = {};
-
-			arp_buffer[packet.destination_network_id][packet.destination_host_id].emplace_back(packet);
-
-			packet::arp arp_packet{
-				packet::arp_types::REQ,
-				packet.destination_network_id,
-				packet.destination_host_id,
-				0,
-				network_ids[link_index],
-				host_ids[link_index],
-				ethernet_ids[link_index]
-			};
-			packet::ethernet ethernet_packet{
-				packet::ethernet::BROADCAST_ID,
-				ethernet_ids[link_index],
-				packet::serialize(arp_packet)
-			};
-			links[link_index].write_port(
-				ethernet_packet
-			);
+						packet::bc bc_packet{
+							network_id,
+							network_id_to_host_id[network_id],
+							++bc_sequence_number,
+							packet.destination_network_id,
+							packet::serialize(packet)
+						};
+						packet::ethernet ethernet_packet{
+							// This router will always know the ethernet id of a router it knows the ip id of, this is
+							// because of how
+							ip_id_to_ethernet_id[network_id][router_host_id],
+							network_id_to_ethernet_id[network_id],
+							packet::serialize(bc_packet)
+						};
+						link.write_port(ethernet_packet);
+					}
+				}
+			}
 		}
 	}
 
@@ -136,6 +177,48 @@ namespace computer_networks_project::router {
 			network_id_to_adjacent_router_host_ids[packet.network_id] = {};
 
 		network_id_to_adjacent_router_host_ids[packet.network_id].insert(packet.host_id);
+		ip_id_to_ethernet_id[packet.network_id][packet.host_id] = packet.ethernet_id;
+	}
+
+	void router::process_packet(const packet::bc &packet, std::size_t link_index) {
+		if (!ip_id_to_bc_sequence_number.contains(packet.source_network_id))
+			ip_id_to_bc_sequence_number[packet.source_network_id] = {};
+
+		if (!ip_id_to_bc_sequence_number[packet.source_network_id].contains(packet.source_host_id))
+			ip_id_to_bc_sequence_number[packet.source_network_id][packet.source_host_id] = 0;
+
+		// First bc packet or new greater sequence number?
+		if (packet.sequence_number <= ip_id_to_bc_sequence_number[packet.source_network_id][packet.source_host_id])
+			return;
+
+		// In adjacent network?
+		if (network_id_to_host_id.contains(packet.destination_network_id)) {
+			// Process encapsulated ip packet.
+			process_packet(std::get<packet::ip>(packet::deserialize(packet.data).value()), link_index);
+		} else {
+			// Send bc packet to adjacent routers, except for routers in the network the bc packet came from.
+			for (const auto &network_id: network_ids) {
+				// Skip routers in this network, as this is the network the bc packet came from.
+				if (network_id == network_ids[link_index])
+					continue;
+
+				if (network_id_to_adjacent_router_host_ids.contains(network_id)) {
+					for (const auto &router_host_id: network_id_to_adjacent_router_host_ids[network_id]) {
+						// Grab link associated with network id.
+						auto &link = links[network_id_to_link_index[network_id]];
+
+						packet::ethernet ethernet_packet{
+							// This router will always know the ethernet id of a router it knows the ip id of, this is
+							// because of how
+							ip_id_to_ethernet_id[network_id][router_host_id],
+							network_id_to_ethernet_id[network_id],
+							packet::serialize(packet)
+						};
+						link.write_port(ethernet_packet);
+					}
+				}
+			}
+		}
 	}
 
 	void router::process_packet(packet::packet_types packet, std::size_t link_index) {

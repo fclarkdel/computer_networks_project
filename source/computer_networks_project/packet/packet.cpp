@@ -188,7 +188,7 @@ namespace computer_networks_project::packet {
 			std::getline(stream, source_host_id, ' ');
 			std::getline(stream, sequence_number, ' ');
 			std::getline(stream, destination_network_id, ' ');
-			std::getline(stream, data, ' ');
+			std::getline(stream, data);
 
 			return bc{
 				std::size_t{std::stoull(source_network_id)},
