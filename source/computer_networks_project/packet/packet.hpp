@@ -17,10 +17,52 @@ namespace computer_networks_project::packet {
 		bool operator==(const ethernet &rhs) const;
 	};
 
-	using packet_types = std::variant<ethernet>;
+	struct ip {
+		std::size_t destination_network_id;
+		std::size_t destination_host_id;
+		std::size_t source_network_id;
+		std::size_t source_host_id;
+		std::string data;
+
+		bool operator==(const ip &rhs) const;
+	};
+
+	enum class arp_types {
+		REQ,
+		REP
+	};
+
+	struct arp {
+		arp_types arp_type;
+		std::size_t target_network_id;
+		std::size_t target_host_id;
+		std::size_t target_ethernet_id;
+
+		std::size_t source_network_id;
+		std::size_t source_host_id;
+		std::size_t source_ethernet_id;
+
+		bool operator==(const arp &rhs) const;
+	};
+
+	struct hl {
+		std::size_t network_id;
+		std::size_t host_id;
+		std::size_t ethernet_id;
+
+		bool operator==(const hl &rhs) const;
+	};
+
+	using packet_types = std::variant<ethernet, ip, arp, hl>;
 
 	std::string serialize(const ethernet &packet);
 
-	std::optional<packet_types> deserialize(std::string serialization);
+	std::string serialize(const ip &packet);
+
+	std::string serialize(const arp &packet);
+
+	std::string serialize(const hl &packet);
+
+	std::optional<packet_types> deserialize(const std::string &serialization);
 }
 #endif

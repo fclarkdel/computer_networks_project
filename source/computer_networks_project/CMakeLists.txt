@@ -2,10 +2,14 @@ add_library(
         computer_networks_project_library
         bridge/bridge.cpp
         bridge/bridge.hpp
+        host/host.cpp
+        host/host.hpp
         link/link.cpp
         link/link.hpp
         packet/packet.cpp
         packet/packet.hpp
+        router/router.cpp
+        router/router.hpp
         utils/utils.cpp
         utils/utils.hpp
 )
@@ -28,8 +32,10 @@ if (PROJECT_IS_TOP_LEVEL)
     add_executable(
             computer_networks_project_tests
             bridge/bridge.test.cpp
+            host/host.test.cpp
             link/link.test.cpp
             packet/packet.test.cpp
+            router/router.test.cpp
     )
     include(FetchContent)
 
