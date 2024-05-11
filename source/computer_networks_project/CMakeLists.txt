@@ -21,10 +21,27 @@ target_include_directories(
 add_executable(
         bridge
         cli/bridge.cpp
-        cli/router.cpp
 )
 target_link_libraries(
         bridge
+        PRIVATE
+        computer_networks_project_library
+)
+add_executable(
+        router
+        cli/router.cpp
+)
+target_link_libraries(
+        router
+        PRIVATE
+        computer_networks_project_library
+)
+add_executable(
+        host
+        cli/host.cpp
+)
+target_link_libraries(
+        host
         PRIVATE
         computer_networks_project_library
 )
