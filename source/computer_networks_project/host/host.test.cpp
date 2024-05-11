@@ -150,3 +150,23 @@ TEST_F(host_test, should_send_data_to_host_on_other_network) {
 	}
 	host1.process_packets();
 }
+
+TEST_F(host_test, dev) {
+	host::host host1{
+		1,
+		2,
+		1,
+		1,
+		1,
+		1,
+		2
+	};
+	host1.enqueue_data(
+		2,
+		2,
+		"DataDataDataData"
+	);
+	for (int i = 0; i < 20; ++i) {
+		host1.process_packets();
+	}
+}
