@@ -1,7 +1,0 @@
-#ifndef COMPUTER_NETWORKS_PROJECT_BRIDGE_HPP
-#define COMPUTER_NETWORKS_PROJECT_BRIDGE_HPP
-
-class bridge {
-};
-
-#endif

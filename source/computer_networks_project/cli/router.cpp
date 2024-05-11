@@ -1,6 +1,6 @@
 #include <thread>
 
-#include <bridge/bridge.hpp>
+#include <router/router.hpp>
 
 using namespace computer_networks_project;
 

@@ -94,6 +94,19 @@ namespace computer_networks_project::packet {
 			   packet.data;
 	}
 
+	std::string serialize(const da &packet) {
+		return "da " +
+			   std::to_string(packet.sequence_number) + " " +
+			   std::to_string(packet.channel_number) + " " +
+			   packet.data;
+	}
+
+	std::string serialize(const ak &packet) {
+		return "ak " +
+			   std::to_string(packet.sequence_number) + " " +
+			   std::to_string(packet.channel_number) + " ";
+	}
+
 	std::optional<packet_types> deserialize(const std::string &serialization) {
 		std::istringstream stream{serialization};
 
@@ -196,6 +209,31 @@ namespace computer_networks_project::packet {
 				std::size_t{std::stoull(sequence_number)},
 				std::size_t{std::stoull(destination_network_id)},
 				data
+			};
+		} else if (packet_type == "da") {
+			std::string sequence_number{};
+			std::string channel_number{};
+			std::string data;
+
+			std::getline(stream, sequence_number, ' ');
+			std::getline(stream, channel_number, ' ');
+			std::getline(stream, data);
+
+			return da{
+				std::size_t{std::stoull(sequence_number)},
+				std::size_t{std::stoull(channel_number)},
+				data
+			};
+		} else if (packet_type == "ak") {
+			std::string sequence_number{};
+			std::string channel_number{};
+
+			std::getline(stream, sequence_number, ' ');
+			std::getline(stream, channel_number, ' ');
+
+			return ak{
+				std::size_t{std::stoull(sequence_number)},
+				std::size_t{std::stoull(channel_number)},
 			};
 		}
 		return std::nullopt;

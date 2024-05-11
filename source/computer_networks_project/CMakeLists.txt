@@ -21,7 +21,7 @@ target_include_directories(
 add_executable(
         bridge
         cli/bridge.cpp
-        cli/bridge.hpp
+        cli/router.cpp
 )
 target_link_libraries(
         bridge

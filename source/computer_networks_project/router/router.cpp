@@ -43,7 +43,7 @@ namespace computer_networks_project::router {
 	void router::process_packet(const packet::ip &packet, std::size_t link_index) {
 		// In adjacent network?
 		if (network_id_to_host_id.contains(packet.destination_network_id)) {
-			// Mean for this router?
+			// Meant for this router?
 			if (network_id_to_host_id[packet.destination_network_id] == packet.destination_host_id) {
 				// Do nothing.
 				return;
@@ -78,9 +78,9 @@ namespace computer_networks_project::router {
 						packet.destination_network_id,
 						packet.destination_host_id,
 						0,
-						network_ids[link_index],
-						host_ids[link_index],
-						ethernet_ids[link_index]
+						packet.destination_network_id,
+						network_id_to_host_id[packet.destination_network_id],
+						network_id_to_ethernet_id[packet.destination_network_id]
 					};
 					packet::ethernet ethernet_packet{
 						packet::ethernet::BROADCAST_ID,
