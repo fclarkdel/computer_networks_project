@@ -36,8 +36,7 @@ int main(int argc, char *argv[]) {
 		);
 	}
 	while (true) {
-		host.process_packets();
-
 		std::this_thread::sleep_for(std::chrono::seconds{1});
+		host.process_packets();
 	}
 }

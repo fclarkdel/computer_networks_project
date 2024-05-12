@@ -12,6 +12,43 @@ struct router_test : public ::testing::Test {
 	}
 };
 
+TEST_F(router_test, should_drop_bc_packet_with_old_sequence_number) {
+	packet::ethernet packet{
+		1,
+		2,
+		packet::serialize(
+			packet::bc{
+				2,
+				1,
+				1,
+				1,
+				packet::serialize(
+					packet::ip{
+						1,
+						1,
+						2,
+						1,
+						""
+					}
+				)
+			}
+		)
+	};
+	router::router router1{
+		{1},
+		{1},
+		{1},
+		{1},
+		{1}
+	};
+	link::link link11{1, 1};
+
+	link11.write_bridge(packet);
+	link11.write_bridge(packet);
+
+	router1.process_packets();
+}
+
 TEST_F(router_test, should_broadcast_arp_req_for_an_unknown_ip) {
 	packet::ethernet packet{
 		1,

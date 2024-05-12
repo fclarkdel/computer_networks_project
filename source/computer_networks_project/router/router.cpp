@@ -95,20 +95,22 @@ namespace computer_networks_project::router {
 				}
 			}
 		} else {
+			++bc_sequence_number;
+
 			// Send bc packet to adjacent routers.
+			packet::bc bc_packet{
+				network_ids[link_index],
+				network_id_to_host_id[network_ids[link_index]],
+				bc_sequence_number,
+				packet.destination_network_id,
+				packet::serialize(packet)
+			};
 			for (const auto &network_id: network_ids) {
 				if (network_id_to_adjacent_router_host_ids.contains(network_id)) {
 					for (const auto &router_host_id: network_id_to_adjacent_router_host_ids[network_id]) {
 						// Grab link associated with network id.
 						auto &link = links[network_id_to_link_index[network_id]];
 
-						packet::bc bc_packet{
-							network_id,
-							network_id_to_host_id[network_id],
-							++bc_sequence_number,
-							packet.destination_network_id,
-							packet::serialize(packet)
-						};
 						packet::ethernet ethernet_packet{
 							// This router will always know the ethernet id of a router it knows the ip id of, this is
 							// because of how

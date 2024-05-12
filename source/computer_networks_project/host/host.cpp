@@ -106,8 +106,6 @@ namespace computer_networks_project::host {
 				using packet_type = std::decay_t<decltype(_packet)>;
 
 				if constexpr (std::is_same_v<packet_type, packet::da>) {
-					std::cout << packet::serialize(_packet) << std::endl;
-
 					packet::ak ak_packet{
 						_packet.sequence_number,
 						_packet.channel_number
@@ -121,8 +119,6 @@ namespace computer_networks_project::host {
 					};
 					send_packet(ip_packet);
 				} else if constexpr (std::is_same_v<packet_type, packet::ak>) {
-					std::cout << packet::serialize(_packet) << std::endl;
-
 					ack_bits[_packet.channel_number] = _packet.sequence_number;
 				}
 			},
