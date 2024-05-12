@@ -12,6 +12,7 @@ int main(int argc, char *argv[]) {
 	std::size_t router_host_id = std::stoull(argv[5]);
 	std::size_t bridge_id = std::stoull(argv[6]);
 	std::size_t port_id = std::stoull(argv[7]);
+
 	host::host host{
 		network_id,
 		host_id,
