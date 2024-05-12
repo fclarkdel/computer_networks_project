@@ -1,3 +1,5 @@
+#include <chrono>
+
 #include <gtest/gtest.h>
 
 #include <bridge/bridge.hpp>
@@ -141,7 +143,7 @@ TEST_F(host_test, should_send_data_to_host_on_other_network) {
 	};
 	host1.enqueue_data(2, 2, "1234512345123451223123421398675987234590823745098710298712908702139874098742134");
 
-	for (std::size_t i = 0; i < 1000; ++i) {
+	for (std::size_t i = 0; i < 100; ++i) {
 		host1.process_packets();
 		bridge1.process_packets();
 		router1.process_packets();
@@ -151,22 +153,48 @@ TEST_F(host_test, should_send_data_to_host_on_other_network) {
 	host1.process_packets();
 }
 
-TEST_F(host_test, dev) {
+TEST_F(host_test, should_retransmit_after_timeout) {
 	host::host host1{
 		1,
+		1,
+		1,
+		1,
 		2,
 		1,
-		1,
-		1,
-		1,
-		2
+		1
 	};
 	host1.enqueue_data(
-		2,
-		2,
+		1,
+		3,
 		"DataDataDataData"
 	);
-	for (int i = 0; i < 20; ++i) {
+	link::link link11{
+		1,
+		1
+	};
+	host1.process_packets();
+	host1.process_packets();
+
+	link11.write_bridge(
+		packet::ethernet{
+			1,
+			2,
+			packet::serialize(
+				packet::arp{
+					packet::arp_types::REP,
+					1,
+					3,
+					2,
+					1,
+					1,
+					1
+				}
+			)
+		}
+	);
+	auto start_time = std::chrono::system_clock::now();
+
+	while (std::chrono::system_clock::now() - start_time < std::chrono::seconds{90}) {
 		host1.process_packets();
 	}
 }

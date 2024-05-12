@@ -172,7 +172,6 @@ namespace computer_networks_project::host {
 	}
 
 	void host::process_packet(const packet::hl &packet) {
-
 	}
 
 	void host::process_packet(packet::packet_types packet) {
@@ -199,31 +198,45 @@ namespace computer_networks_project::host {
 			process_packet(packet.value());
 
 		for (std::size_t index = 0; index < NUMBER_OF_CHANNELS && !data_queue.empty(); ++index) {
-			if (sequence_bits[index] != ack_bits[index])
-				continue;
+			packet::ip packet{};
 
-			ip_data data = data_queue.front();
-			data_queue.pop();
+			if (sequence_bits[index] != ack_bits[index]) {
+				if (da_packet_to_time_sent.contains(sequence_bits[index]) &&
+					da_packet_to_time_sent[sequence_bits[index]].contains(index) &&
+					std::chrono::system_clock::now() - da_packet_to_time_sent[sequence_bits[index]][index] >= TIMEOUT)
+					// Packet sent and timed out, retransmit.
+					packet = da_packet_to_ip_packet[sequence_bits[index]][index];
+				else
+					// Packet sent but not timed out, keep waiting.
+					continue;
+			} else {
+				// Packet sent and received ack, can send new packet.
+				sequence_bits[index] = !sequence_bits[index];
 
-			sequence_bits[index] = !sequence_bits[index];
+				ip_data data = data_queue.front();
+				data_queue.pop();
 
-			send_packet(
-				packet::ip{
+				packet::da da_packet{
+					sequence_bits[index],
+					index,
+					data.data
+				};
+				packet = packet::ip{
 					data.destination_network_id,
 					data.destination_host_id,
 					network_id,
 					host_id,
 					packet::serialize(
-						packet::da{
-							sequence_bits[index],
-							index,
-							data.data
-						}
+						da_packet
 					)
-				}
+				};
+			}
+			send_packet(
+				packet
 			);
+			da_packet_to_ip_packet[sequence_bits[index]][index] = packet;
+			da_packet_to_time_sent[sequence_bits[index]][index] = std::chrono::system_clock::now();
 		}
-
 	}
 
 	void

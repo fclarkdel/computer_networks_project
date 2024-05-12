@@ -5,6 +5,7 @@
 #include <queue>
 #include <unordered_map>
 #include <vector>
+#include <chrono>
 
 #include <link/link.hpp>
 
@@ -26,7 +27,8 @@ namespace computer_networks_project::host {
 		void process_packets();
 
 	private:
-		static const std::size_t NUMBER_OF_CHANNELS = 2;
+		static const std::size_t NUMBER_OF_CHANNELS{2};
+		constexpr static const std::chrono::seconds TIMEOUT{30};
 
 		std::size_t network_id;
 		std::size_t host_id;
@@ -50,6 +52,8 @@ namespace computer_networks_project::host {
 
 		std::unordered_map<std::size_t, std::unordered_map<std::size_t, std::size_t>> ip_id_to_ethernet_id;
 		std::unordered_map<std::size_t, std::unordered_map<std::size_t, std::vector<packet::ip>>> arp_buffer;
+		std::unordered_map<std::size_t, std::unordered_map<std::size_t, std::chrono::system_clock::time_point>> da_packet_to_time_sent;
+		std::unordered_map<std::size_t, std::unordered_map<std::size_t, packet::ip>> da_packet_to_ip_packet;
 
 		void send_arp_request_for_and_buffer(const packet::ip &packet);
 
