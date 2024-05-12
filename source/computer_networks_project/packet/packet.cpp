@@ -40,14 +40,14 @@ namespace computer_networks_project::packet {
 	}
 
 	std::string serialize(const ethernet &packet) {
-		return "ethernet " +
+		return "ETHERNET " +
 			   std::to_string(packet.destination_id) + " " +
 			   std::to_string(packet.source_id) + " " +
 			   packet.data;
 	}
 
 	std::string serialize(const ip &packet) {
-		return "ip " +
+		return "IP " +
 			   std::to_string(packet.destination_network_id) + " " +
 			   std::to_string(packet.destination_host_id) + " " +
 			   std::to_string(packet.source_network_id) + " " +
@@ -56,14 +56,14 @@ namespace computer_networks_project::packet {
 	}
 
 	std::string serialize(const arp &packet) {
-		std::string serialization = "arp ";
+		std::string serialization = "ARP ";
 
 		switch (packet.arp_type) {
 			case arp_types::REQ:
-				serialization += "req ";
+				serialization += "REQ ";
 				break;
 			case arp_types::REP:
-				serialization += "rep ";
+				serialization += "REP ";
 				break;
 		}
 		serialization += std::to_string(packet.target_network_id) + " ";
@@ -79,14 +79,14 @@ namespace computer_networks_project::packet {
 	}
 
 	std::string serialize(const hl &packet) {
-		return "hl " +
+		return "HL " +
 			   std::to_string(packet.network_id) + " " +
 			   std::to_string(packet.host_id) + " " +
 			   std::to_string(packet.ethernet_id);
 	}
 
 	std::string serialize(const bc &packet) {
-		return "bc " +
+		return "BC " +
 			   std::to_string(packet.source_network_id) + " " +
 			   std::to_string(packet.source_host_id) + " " +
 			   std::to_string(packet.sequence_number) + " " +
@@ -95,14 +95,14 @@ namespace computer_networks_project::packet {
 	}
 
 	std::string serialize(const da &packet) {
-		return "da " +
+		return "DA " +
 			   std::to_string(packet.sequence_number) + " " +
 			   std::to_string(packet.channel_number) + " " +
 			   packet.data;
 	}
 
 	std::string serialize(const ak &packet) {
-		return "ak " +
+		return "AK " +
 			   std::to_string(packet.sequence_number) + " " +
 			   std::to_string(packet.channel_number) + " ";
 	}
@@ -113,7 +113,7 @@ namespace computer_networks_project::packet {
 		std::string packet_type{};
 		std::getline(stream, packet_type, ' ');
 
-		if (packet_type == "ethernet") {
+		if (packet_type == "ETHERNET") {
 			std::string destination_id{};
 			std::string source_id{};
 			std::string data{};
@@ -127,7 +127,7 @@ namespace computer_networks_project::packet {
 				std::size_t{std::stoull(source_id)},
 				data
 			};
-		} else if (packet_type == "ip") {
+		} else if (packet_type == "IP") {
 			std::string destination_network_id{};
 			std::string destination_host_id{};
 			std::string source_network_id{};
@@ -147,7 +147,7 @@ namespace computer_networks_project::packet {
 				std::size_t{std::stoull(source_host_id)},
 				data
 			};
-		} else if (packet_type == "arp") {
+		} else if (packet_type == "ARP") {
 			std::string arp_type{};
 			std::string target_network_id;
 			std::string target_host_id;
@@ -160,7 +160,7 @@ namespace computer_networks_project::packet {
 			std::getline(stream, target_network_id, ' ');
 			std::getline(stream, target_host_id, ' ');
 
-			if (arp_type == "rep")
+			if (arp_type == "REP")
 				std::getline(stream, target_ethernet_id, ' ');
 
 			std::getline(stream, source_network_id, ' ');
@@ -168,15 +168,15 @@ namespace computer_networks_project::packet {
 			std::getline(stream, source_ethernet_id, ' ');
 
 			return arp{
-				arp_type == "req" ? arp_types::REQ : arp_types::REP,
+				arp_type == "REQ" ? arp_types::REQ : arp_types::REP,
 				std::size_t{std::stoull(target_network_id)},
 				std::size_t{std::stoull(target_host_id)},
-				arp_type == "req" ? 0 : std::size_t{std::stoull(target_ethernet_id)},
+				arp_type == "REQ" ? 0 : std::size_t{std::stoull(target_ethernet_id)},
 				std::size_t{std::stoull(source_network_id)},
 				std::size_t{std::stoull(source_host_id)},
 				std::size_t{std::stoull(source_ethernet_id)}
 			};
-		} else if (packet_type == "hl") {
+		} else if (packet_type == "HL") {
 			std::string network_id{};
 			std::string host_id{};
 			std::string ethernet_id{};
@@ -190,7 +190,7 @@ namespace computer_networks_project::packet {
 				std::size_t{std::stoull(host_id)},
 				std::size_t{std::stoull(ethernet_id)}
 			};
-		} else if (packet_type == "bc") {
+		} else if (packet_type == "BC") {
 			std::string source_network_id{};
 			std::string source_host_id{};
 			std::string sequence_number{};
@@ -210,7 +210,7 @@ namespace computer_networks_project::packet {
 				std::size_t{std::stoull(destination_network_id)},
 				data
 			};
-		} else if (packet_type == "da") {
+		} else if (packet_type == "DA") {
 			std::string sequence_number{};
 			std::string channel_number{};
 			std::string data;
@@ -224,7 +224,7 @@ namespace computer_networks_project::packet {
 				std::size_t{std::stoull(channel_number)},
 				data
 			};
-		} else if (packet_type == "ak") {
+		} else if (packet_type == "AK") {
 			std::string sequence_number{};
 			std::string channel_number{};
 

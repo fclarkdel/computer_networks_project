@@ -12,9 +12,6 @@ struct bridge_test : public ::testing::Test {
 	}
 };
 
-TEST_F(bridge_test, clean) {
-}
-
 TEST_F(bridge_test, should_deliver_packets_to_other_bridges) {
 	packet::ethernet packet{2, 1, "data"};
 	link::link link11{1, 1};

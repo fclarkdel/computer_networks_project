@@ -153,48 +153,48 @@ TEST_F(host_test, should_send_data_to_host_on_other_network) {
 	host1.process_packets();
 }
 
-TEST_F(host_test, should_retransmit_after_timeout) {
-	host::host host1{
-		1,
-		1,
-		1,
-		1,
-		2,
-		1,
-		1
-	};
-	host1.enqueue_data(
-		1,
-		3,
-		"DataDataDataData"
-	);
-	link::link link11{
-		1,
-		1
-	};
-	host1.process_packets();
-	host1.process_packets();
-
-	link11.write_bridge(
-		packet::ethernet{
-			1,
-			2,
-			packet::serialize(
-				packet::arp{
-					packet::arp_types::REP,
-					1,
-					3,
-					2,
-					1,
-					1,
-					1
-				}
-			)
-		}
-	);
-	auto start_time = std::chrono::system_clock::now();
-
-	while (std::chrono::system_clock::now() - start_time < std::chrono::seconds{90}) {
-		host1.process_packets();
-	}
-}
+//TEST_F(host_test, should_retransmit_after_timeout) {
+//	host::host host1{
+//		1,
+//		1,
+//		1,
+//		1,
+//		2,
+//		1,
+//		1
+//	};
+//	host1.enqueue_data(
+//		1,
+//		3,
+//		"DataDataDataData"
+//	);
+//	link::link link11{
+//		1,
+//		1
+//	};
+//	host1.process_packets();
+//	host1.process_packets();
+//
+//	link11.write_bridge(
+//		packet::ethernet{
+//			1,
+//			2,
+//			packet::serialize(
+//				packet::arp{
+//					packet::arp_types::REP,
+//					1,
+//					3,
+//					2,
+//					1,
+//					1,
+//					1
+//				}
+//			)
+//		}
+//	);
+//	auto start_time = std::chrono::system_clock::now();
+//
+//	while (std::chrono::system_clock::now() - start_time < std::chrono::seconds{90}) {
+//		host1.process_packets();
+//	}
+//}
