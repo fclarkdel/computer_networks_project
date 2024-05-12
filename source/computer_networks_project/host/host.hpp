@@ -62,6 +62,8 @@ namespace computer_networks_project::host {
 
 		void process_packet(const packet::arp &packet);
 
+		void process_packet(const packet::hl &packet);
+
 		void process_packet(packet::packet_types packet);
 	};
 }

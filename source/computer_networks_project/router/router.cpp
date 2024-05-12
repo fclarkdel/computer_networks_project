@@ -191,6 +191,8 @@ namespace computer_networks_project::router {
 		if (packet.sequence_number <= ip_id_to_bc_sequence_number[packet.source_network_id][packet.source_host_id])
 			return;
 
+		ip_id_to_bc_sequence_number[packet.source_network_id][packet.source_host_id] = packet.sequence_number;
+
 		// In adjacent network?
 		if (network_id_to_host_id.contains(packet.destination_network_id)) {
 			// Process encapsulated ip packet.

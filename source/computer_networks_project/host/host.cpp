@@ -58,7 +58,8 @@ namespace computer_networks_project::host {
 	}
 
 	void
-	host::send_arp_request_to_and_buffer(std::size_t target_network_id, std::size_t target_host_id, const packet::ip &packet) {
+	host::send_arp_request_to_and_buffer(std::size_t target_network_id, std::size_t target_host_id,
+										 const packet::ip &packet) {
 		// Buffer the packet.
 		if (!arp_buffer.contains(packet.destination_network_id))
 			arp_buffer[packet.destination_network_id] = {};
@@ -121,7 +122,7 @@ namespace computer_networks_project::host {
 					send_packet(ip_packet);
 				} else if constexpr (std::is_same_v<packet_type, packet::ak>) {
 					std::cout << packet::serialize(_packet) << std::endl;
-					
+
 					ack_bits[_packet.channel_number] = _packet.sequence_number;
 				}
 			},
@@ -172,6 +173,10 @@ namespace computer_networks_project::host {
 			}
 			arp_buffer[packet.target_network_id][packet.target_host_id].clear();
 		}
+	}
+
+	void host::process_packet(const packet::hl &packet) {
+
 	}
 
 	void host::process_packet(packet::packet_types packet) {
